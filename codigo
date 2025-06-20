@@ -1,4 +1,5 @@
-# Importar los módulos necesarios
+import schedule
+import time
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.application import MIMEApplication
@@ -6,20 +7,9 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 import os
 
-# Inicializar la conexión a nuestro
-# servidor de correo electrónico, aquí usaremos Gmail
-smtp = smtplib.SMTP('smtp.gmail.com', 587)
-smtp.ehlo()
-smtp.starttls()
-
-# Iniciar sesión con tu correo electrónico y contraseña
-smtp.login('Tu Correo', 'Tu Contraseña')
-
-
-# Función para construir el mensaje de correo electrónico
+# Envía nuestro mensaje de correo electrónico 'msg'
 def message(subject="Notificación de Python", 
-            text="", img=None,
-            attachment=None):
+            text="", img=None, attachment=None):
     
     # Construir el contenido del mensaje
     msg = MIMEMultipart()
@@ -33,27 +23,30 @@ def message(subject="Notificación de Python",
     # Verificar si se ha proporcionado algo
     # en el parámetro 'img'
     if img is not None:
-        
-        # Verificar si tenemos una lista de imágenes o no
-        if type(img) is not list:  
+
+        # Verificar si tenemos una
+        # lista de imágenes o no
+        if type(img) is not list:
             
             # Si no es una lista, convertirla en una
             img = [img]  
 
-        # Ahora iterar a través de nuestra lista de imágenes
+        # Ahora iterar a través de nuestra lista
         for one_img in img:
             
             # Leer los datos binarios de la imagen
             img_data = open(one_img, 'rb').read()  
+            
             # Adjuntar los datos de la imagen a MIMEMultipart
-            # usando MIMEImage, añadimos el nombre de archivo usando os.basename
-            msg.attach(MIMEImage(img_data,
+            # usando MIMEImage,
+            # añadimos el nombre de archivo usando os.basename
+            msg.attach(MIMEImage(img_data, 
                                  name=os.path.basename(one_img)))
 
-    # Hacemos lo mismo para los
-    # adjuntos que hicimos para las imágenes
+    # Hacemos lo mismo para los adjuntos
+    # que hicimos para las imágenes
     if attachment is not None:
-        
+
         # Verificar si tenemos una
         # lista de adjuntos o no
         if type(attachment) is not list:
@@ -65,8 +58,7 @@ def message(subject="Notificación de Python",
 
             with open(one_attachment, 'rb') as f:
                 
-                # Leer el adjunto
-                # usando MIMEApplication
+                # Leer el adjunto usando MIMEApplication
                 file = MIMEApplication(
                     f.read(),
                     name=os.path.basename(one_attachment)
@@ -79,18 +71,58 @@ def message(subject="Notificación de Python",
     return msg
 
 
-# Llamar a la función message
-msg = message("¡Buen trabajo!", "¡Hola!",
-              r"C:\Users\Dell\Downloads\Garbage\Cartoon.jpg",
-              r"C:\Users\Dell\Desktop\slack.py")
+def mail():
+    
+    # Inicializar la conexión a nuestro servidor de correo electrónico,
+    # aquí usaremos Gmail
+    smtp = smtplib.SMTP('smtp.gmail.com', 587)
+    smtp.ehlo()
+    smtp.starttls()
+    
+    # Iniciar sesión con tu correo electrónico y contraseña
+    smtp.login('Tu Correo', 'Tu Contraseña') # ¡Recuerda reemplazar con tus credenciales!
 
-# Crear una lista de correos electrónicos a los que quieres enviar el correo
-to = ["ABC@gmail.com",
-      "XYZ@gmail.com", "insaaf@gmail.com"]
+    # Llamar a la función message
+    msg = message("¡Buen trabajo!", "¡Hola!",
+                  r"C:\Users\Dell\Downloads\Garbage\Cartoon.jpg",
+                  r"C:\Users\Dell\Desktop\slack.py")
+    
+    # Crear una lista de correos electrónicos a los que quieres enviar el correo
+    to = ["ABC@gmail.com",
+          "XYZ@gmail.com", "insaaf@gmail.com"]
 
-# Proporcionar algunos datos a la función sendmail
-smtp.sendmail(from_addr="hello@gmail.com",
-              to_addrs=to, msg=msg.as_string())
+    # Proporcionar algunos datos a la función sendmail
+    smtp.sendmail(from_addr="hello@gmail.com",
+                  to_addrs=to, msg=msg.as_string())
+    
+    # Finalmente, no olvides cerrar la conexión
+    smtp.quit()  
 
-# Finalmente, no olvides cerrar la conexión
-smtp.quit()
+
+# ---
+## Programación de Tareas
+
+Aquí configuramos el envío de correos electrónicos para que se realice automáticamente en diferentes intervalos.
+
+* `schedule.every(2).seconds.do(mail)`: Envía el correo cada 2 segundos.
+* `schedule.every(10).minutes.do(mail)`: Envía el correo cada 10 minutos.
+* `schedule.every().hour.do(mail)`: Envía el correo cada hora.
+* `schedule.every().day.at("10:30").do(mail)`: Envía el correo todos los días a las 10:30 AM.
+* `schedule.every(5).to(10).minutes.do(mail)`: Envía el correo en algún momento entre 5 y 10 minutos.
+* `schedule.every().monday.do(mail)`: Envía el correo todos los lunes.
+* `schedule.every().wednesday.at("13:15").do(mail)`: Envía el correo todos los miércoles a la 1:15 PM.
+* `schedule.every().minute.at(":17").do(mail)`: Envía el correo cada minuto, cuando el segundo es 17.
+
+```python
+schedule.every(2).seconds.do(mail)
+schedule.every(10).minutes.do(mail)
+schedule.every().hour.do(mail)
+schedule.every().day.at("10:30").do(mail)
+schedule.every(5).to(10).minutes.do(mail)
+schedule.every().monday.do(mail)
+schedule.every().wednesday.at("13:15").do(mail)
+schedule.every().minute.at(":17").do(mail)
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)
