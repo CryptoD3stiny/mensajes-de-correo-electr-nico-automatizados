@@ -1,4 +1,4 @@
-# mensajes-de-correo-electr-nico-automatizados
+# mensajes-de-correo-electro-nico-automatizados
 enviar mensajes de correo electrónico automatizados en Python
 
 ![image](https://github.com/user-attachments/assets/b81c2ad5-c9cf-405d-b9ca-9d4bac64ed41)
