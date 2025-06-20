@@ -1,0 +1,96 @@
+# Importar los módulos necesarios
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+import smtplib
+import os
+
+# Inicializar la conexión a nuestro
+# servidor de correo electrónico, aquí usaremos Gmail
+smtp = smtplib.SMTP('smtp.gmail.com', 587)
+smtp.ehlo()
+smtp.starttls()
+
+# Iniciar sesión con tu correo electrónico y contraseña
+smtp.login('Tu Correo', 'Tu Contraseña')
+
+
+# Función para construir el mensaje de correo electrónico
+def message(subject="Notificación de Python", 
+            text="", img=None,
+            attachment=None):
+    
+    # Construir el contenido del mensaje
+    msg = MIMEMultipart()
+    
+    # Añadir el Asunto
+    msg['Subject'] = subject  
+    
+    # Añadir el contenido de texto
+    msg.attach(MIMEText(text))  
+
+    # Verificar si se ha proporcionado algo
+    # en el parámetro 'img'
+    if img is not None:
+        
+        # Verificar si tenemos una lista de imágenes o no
+        if type(img) is not list:  
+            
+            # Si no es una lista, convertirla en una
+            img = [img]  
+
+        # Ahora iterar a través de nuestra lista de imágenes
+        for one_img in img:
+            
+            # Leer los datos binarios de la imagen
+            img_data = open(one_img, 'rb').read()  
+            # Adjuntar los datos de la imagen a MIMEMultipart
+            # usando MIMEImage, añadimos el nombre de archivo usando os.basename
+            msg.attach(MIMEImage(img_data,
+                                 name=os.path.basename(one_img)))
+
+    # Hacemos lo mismo para los
+    # adjuntos que hicimos para las imágenes
+    if attachment is not None:
+        
+        # Verificar si tenemos una
+        # lista de adjuntos o no
+        if type(attachment) is not list:
+            
+            # Si no es una lista, convertirla en una
+            attachment = [attachment]  
+
+        for one_attachment in attachment:
+
+            with open(one_attachment, 'rb') as f:
+                
+                # Leer el adjunto
+                # usando MIMEApplication
+                file = MIMEApplication(
+                    f.read(),
+                    name=os.path.basename(one_attachment)
+                )
+            file['Content-Disposition'] = f'attachment;\
+            filename="{os.path.basename(one_attachment)}"'
+            
+            # Finalmente, añadir el adjunto a nuestro objeto de mensaje
+            msg.attach(file)
+    return msg
+
+
+# Llamar a la función message
+msg = message("¡Buen trabajo!", "¡Hola!",
+              r"C:\Users\Dell\Downloads\Garbage\Cartoon.jpg",
+              r"C:\Users\Dell\Desktop\slack.py")
+
+# Crear una lista de correos electrónicos a los que quieres enviar el correo
+to = ["ABC@gmail.com",
+      "XYZ@gmail.com", "insaaf@gmail.com"]
+
+# Proporcionar algunos datos a la función sendmail
+smtp.sendmail(from_addr="hello@gmail.com",
+              to_addrs=to, msg=msg.as_string())
+
+# Finalmente, no olvides cerrar la conexión
+smtp.quit()
